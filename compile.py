@@ -1,7 +1,8 @@
+#!/usr/local/bin/python3
+
 import os
 import subprocess
 import shutil
-
 
 def run():
     cwd = os.getcwd()
