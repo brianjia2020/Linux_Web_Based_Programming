@@ -1,45 +1,20 @@
 #!/usr/local/bin/python3
 
 import os
+from os.path import isdir,isfile,join
 import subprocess
 import shutil
 
 def run():
     cwd = os.getcwd()
-    sourceFolder = os.path.join(cwd, "src")
-    outputFolder = os.path.join(cwd, "output")
-    toCompile = findAllItems(sourceFolder)
-    if os.path.isdir(outputFolder):
-        shutil.rmtree(outputFolder)
-        os.mkdir(outputFolder)
+    if isdir(join(cwd, "build")):
+        shutil.rmtree(join(cwd, "build"))
+        os.mkdir(join(cwd, "build"))
     else:
-        os.mkdir(outputFolder)
-
-    for item in toCompile:
-        target = item.replace("src", "output")
-        target = target[:-2]
-        path, file = os.path.split(target)
-        # print(path, file)
-        if not os.path.isdir(path):
-            os.mkdir(path)
-        subprocess.run(["clang", item, '-I', './src/include/', "-o", target])
-
-
-def findAllItems(cwd):
-    files = os.listdir(cwd)
-    # print(files)
-    toCompile = []
-    for item in files:
-        newItem = os.path.join(cwd, item)
-        # print(item.split("."))
-        # print(newItem)
-        if os.path.isfile(newItem) and item.split(".")[-1] == "c":
-            # print(item)
-            toCompile.append(newItem)
-        if os.path.isdir(newItem):
-            toCompile.extend(findAllItems(newItem))
-    return toCompile
-
+        os.mkdir(join(cwd, "build"))
+    os.chdir(join(cwd, "build"))
+    subprocess.run(["cmake", ".."])
+    # subprocess.run(["chmod", "-R", "755", join(cwd, "build", "CMakeFiles", "add.dir", "src")])
 
 if __name__ == "__main__":
     run()
