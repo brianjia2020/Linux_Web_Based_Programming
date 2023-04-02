@@ -4,11 +4,26 @@
 #include <sys/socket.h>
 #include <string.h>
 #include <signal.h>
+#include <stdlib.h>
+#include <sys/wait.h>
 
 // create socket, bind, listen
 // loop to continue
   // create processes for client socket
 // close socket
+
+void catch_child(int num) {
+  pid_t pid;
+  while(1) {
+    pid = waitpid(-1, NULL, WNOHANG);
+    if (pid <= 0) {
+      break;
+    } else if (pid > 0) {
+      printf("child process %d resource recovered\n", pid);
+      continue;
+    }
+  }
+}
 
 int main(int argc, char const *argv[])
 {
@@ -17,7 +32,7 @@ int main(int argc, char const *argv[])
   sigset_t set;
   sigemptyset(&set);
   sigaddset(&set, SIGCHLD);
-  sigprocmask(SIG_BLOCK, &set, sizeof(set));
+  sigprocmask(SIG_BLOCK, &set, NULL);
 
   // step 1. create socket
   int s_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -38,9 +53,12 @@ int main(int argc, char const *argv[])
   struct sockaddr_in cli_addr;
   socklen_t len = sizeof(cli_addr);
   while(1) {
+again:
     int c_fd = accept(s_fd, (struct sockaddr*)&cli_addr, &len);
     if (c_fd < 0) {
-        perror("accept failed.");
+        if (c_fd == ECONNABORTED || c_fd == EINTR) {
+          goto again;
+        } else perror("accept failed.");
     }
     char ip[INET_ADDRSTRLEN] = "";
     printf(
@@ -61,7 +79,7 @@ int main(int argc, char const *argv[])
         printf("received: %s\n", buf);
         write(c_fd, buf, n); // send back
       }
-      break;
+      exit(0);
     } else if (pid > 0) {
       close(c_fd);
       struct sigaction act;

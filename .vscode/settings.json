@@ -3,6 +3,9 @@
         "socket.h": "c",
         "inet.h": "c",
         "__config": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "wait.h": "c",
+        "stdlib.h": "c",
+        "pthread.h": "c"
     }
 }
